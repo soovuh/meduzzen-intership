@@ -1,12 +1,11 @@
 from fastapi import FastAPI
-from dotenv import load_dotenv
 
-from routers.main_router import router
+from app.core.settings import Settings
+from app.routers.main_router import router
 
-# load environment variables
-load_dotenv()
 
 app = FastAPI()
+settings = Settings()
 
 # Include main router
 app.include_router(router, prefix="")

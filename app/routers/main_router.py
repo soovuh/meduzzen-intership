@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from routers import healthcheck
+from app.routers import healthcheck
 
 
 router = APIRouter()
