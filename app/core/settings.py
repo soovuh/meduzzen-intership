@@ -7,3 +7,6 @@ class Settings(BaseSettings):
     port: str
 
     model_config = SettingsConfigDict(env_file=".env")
+
+
+settings = Settings()
