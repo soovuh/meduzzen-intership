@@ -25,6 +25,24 @@
 
 > **_NOTE:_**  Don't forget to create an .env file and add  the HOST and PORT variables to  it. For local startup you can set HOST='127.0.0.1', PORT='8000'.
 
+## Runing the Application via Docker
+1. To start the FastAPI application via Dockerfile, use the following commands:
+
+    ```bash
+    docker build -t myapp .
+    docker run -d -p 8080:8080 --name myapp-container fastapi-app
+    ```
+
+2. To start the FastAPI application via docker-compose, use the following commands:
+
+    ```bash
+    docker-compose build
+    docker-compose up -d
+    ```
+> **_NOTE:_**  The -d option will run the container in the background, this option can be removed if desired
+
+### To access the application from a local machine, use http://localhost:8080/
+
 ## Running Tests
 1. To run tests for the FastAPI application, use the following command:
 
