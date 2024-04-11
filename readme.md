@@ -20,7 +20,7 @@
 1. To start the FastAPI application, use the following command:
 
     ```bash
-    uvicorn app.main:app --host ${HOST} --port ${PORT} --reload
+    python -m app.main
     ```
 
 > **_NOTE:_**  Don't forget to create an .env file and add  the HOST and PORT variables to  it. For local startup you can set HOST='127.0.0.1', PORT='8000'.
