@@ -5,7 +5,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.main_router import router
 from app.core.settings import settings
-from app.db.database import create_engine, create_sessionmaker, get_session
+from app.db.database import (
+    create_engine,
+    create_sessionmaker,
+    get_session,
+    get_session_imp,
+)
 
 
 app = FastAPI()
@@ -30,7 +35,7 @@ def register_db(app: FastAPI) -> None:
     engine = create_engine(settings)
     session_maker = create_sessionmaker(engine)
 
-    app.dependency_overrides[get_session] = lambda: session_maker()
+    app.dependency_overrides[get_session] = get_session_imp(session_maker)
 
 
 register_db(app)

@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     app_name: str = "Meduzzen Internship Project"
     host: str
     port: int
+    db_host: str
     db_name: str
     db_username: str
     db_password: str
