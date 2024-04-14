@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.routers.main_router import router
 from app.core.settings import settings
+from app.db.database import create_engine, create_sessionmaker, get_session
 
 
 app = FastAPI()
@@ -23,6 +24,17 @@ app.add_middleware(
 )
 
 app.include_router(router, prefix="")
+
+
+def register_db(app: FastAPI) -> None:
+    engine = create_engine(settings)
+    session_maker = create_sessionmaker(engine)
+
+    app.dependency_overrides[get_session] = lambda: session_maker()
+
+
+register_db(app)
+
 
 if __name__ == "__main__":
     config = uvicorn.Config(
