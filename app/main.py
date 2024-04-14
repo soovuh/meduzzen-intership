@@ -11,6 +11,7 @@ from app.db.database import (
     get_session,
     get_session_imp,
 )
+from app.db.redis import get_redis, get_redis_imp
 
 
 app = FastAPI()
@@ -38,7 +39,13 @@ def register_db(app: FastAPI) -> None:
     app.dependency_overrides[get_session] = get_session_imp(session_maker)
 
 
+def register_redis(app: FastAPI) -> None:
+    redis_fn = get_redis
+    app.dependency_overrides[get_redis] = get_redis_imp(redis_fn)
+
+
 register_db(app)
+register_redis(app)
 
 
 if __name__ == "__main__":

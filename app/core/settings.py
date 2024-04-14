@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     db_name: str
     db_username: str
     db_password: str
+    redis_host: str
+    redis_port: int
 
     model_config = SettingsConfigDict(env_file=".env")
 
