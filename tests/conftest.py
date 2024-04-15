@@ -17,9 +17,9 @@ def register_test_db(app):
 
 
 async def get_test_redis():
-    redis = await FakeRedis.from_url('redis://mock_redis')
+    redis = await FakeRedis.from_url("redis://mock_redis")
     return redis
-    
+
 
 def register_test_redis(app):
     redis_fn = get_test_redis

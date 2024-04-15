@@ -22,7 +22,9 @@ async def get_redis() -> aioredis.Redis:
     return redis
 
 
-def get_redis_imp(redis_fn: Callable[[], aioredis.Redis]) -> Callable[[], aioredis.Redis]:
+def get_redis_imp(
+    redis_fn: Callable[[], aioredis.Redis]
+) -> Callable[[], aioredis.Redis]:
     async def _get_redis() -> aioredis.Redis:
         return await redis_fn()
 

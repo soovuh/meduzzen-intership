@@ -28,7 +28,7 @@ async def health_check_db(db: AsyncSession = Depends(get_session)):
         }
     except Exception as e:
         return {"status": 500, "detail": "Database connection error", "result": "error"}
-    
+
 
 @router.get("/redis")
 async def health_check_redis(redis: Redis = Depends(get_redis)):
@@ -46,4 +46,3 @@ async def health_check_redis(redis: Redis = Depends(get_redis)):
             "detail": "Redis connection error",
             "result": "error",
         }
-    
