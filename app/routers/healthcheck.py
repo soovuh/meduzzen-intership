@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import text
-from aioredis import Redis
+from redis.asyncio import Redis
 
 from app.db.database import get_session
 from app.db.redis import get_redis

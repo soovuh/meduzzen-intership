@@ -3,4 +3,4 @@ pydantic-settings==2.2.1
 uvicorn==0.29.0
 sqlalchemy==2.0.29
 asyncpg==0.29.0
-aioredis==2.0.1
+redis==5.0.3

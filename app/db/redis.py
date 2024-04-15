@@ -1,4 +1,4 @@
-import aioredis
+from redis import asyncio as aioredis
 from typing import Callable
 from app.core.settings import Settings
 
