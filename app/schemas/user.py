@@ -27,9 +27,10 @@ class UserUpdateRequest(BaseModel):
     password: Optional[str]
 
 
-class UserDetailResponse(BaseModel):
-    user: UserDetail
+class UserSummary(BaseModel):
+    id: int
+    name: str
 
 
 class UsersListResponse(BaseModel):
-    users: List[UserDetail]
+    users: List[UserSummary]
