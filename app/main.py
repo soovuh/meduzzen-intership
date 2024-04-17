@@ -2,8 +2,11 @@ import uvicorn
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.routers.main_router import router
+from app.utils.logger import logger
+from app.utils.middleware import log_middleware
 from app.core.settings import settings
 from app.db.database import (
     create_engine,
@@ -28,6 +31,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(BaseHTTPMiddleware, dispatch=log_middleware)
 
 app.include_router(router, prefix="")
 
@@ -56,6 +61,7 @@ if __name__ == "__main__":
         reload=True,
         log_level="info",
     )
-
     server = uvicorn.Server(config)
+
+    logger.info("Starting API")
     server.run()

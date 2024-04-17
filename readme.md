@@ -43,6 +43,18 @@
 
 ### To access the application from a local machine, use http://localhost:8080/
 
+## Migrations with Alembic
+1. To generate migrations with alembic run the following command:
+
+    ```bash
+    docker-compose run server /bin/sh -c "alembic revision --autogenerate -m "<migration_name>""
+    ```
+2. To apply migrations for a database in the docker, run the following command:
+
+    ```bash
+    docker-compose run server /bin/sh -c "alembic upgrade head"
+    ```
+
 ## Running Tests
 1. To run tests for the FastAPI application, use the following command:
 
