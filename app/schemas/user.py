@@ -23,8 +23,8 @@ class SignUpRequest(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    name: Optional[str]
-    password: Optional[str]
+    name: Optional[str] = None
+    password: Optional[str] = None
 
 
 class UserSummary(BaseModel):

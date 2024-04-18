@@ -8,7 +8,7 @@ from app.main import app, register_db, register_redis
 @pytest.fixture
 def test_client():
     """Create TestClient instance"""
-    
+
     register_db(app)
     register_redis(app)
 
