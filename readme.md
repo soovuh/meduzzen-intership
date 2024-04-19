@@ -55,11 +55,20 @@
     docker-compose run server /bin/sh -c "alembic upgrade head"
     ```
 
-## Running Tests
-1. To run tests for the FastAPI application, use the following command:
+## Running Tests via Docker
+1. Firstly, need to build docker test containers:
 
     ```bash
-    python -m pytest tests/
+    docker-compose -f docker-compose-test.yaml -p run-tests build
     ```
-    
-This command executes all test modules (test_*.py) within the tests directory using pytest. The tests are configured to use fixtures defined in conftest.py for setting up the test environment.
+2. To apply migrations for a database in the docker for tests, run the following command:
+
+    ```bash
+    docker-compose -f docker-compose-test.yaml -p run-tests run server /bin/sh -c "alembic upgrade head"
+    ```
+3. To run tests for the FastAPI application, use the following commands:
+
+    ```bash
+    docker-compose -f docker-compose-test.yaml -p run-tests up --build
+    ```
+This command executes all test modules (test_*.py) within the tests directory using pytest via Docker. The tests are configured to use fixtures defined in conftest.py for setting up the test environment.

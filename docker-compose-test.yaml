@@ -1,0 +1,35 @@
+version: '3'
+
+x-docker-compose-project:
+  project_name: meduzzen-intership-test
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    ports:
+      - "8080:8080"
+    env_file:
+      - .docker.env
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - postgres
+
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_USERNAME=$DB_USERNAME
+      - POSTGRES_PASSWORD=$DB_PASSWORD
+      - POSTGRES_DB=$DB_NAME
+    ports:
+      - 5432:5432
+    env_file:
+      - .docker.env 
+
+  redis:
+    image: redis
+    ports:
+      - 6379:6379

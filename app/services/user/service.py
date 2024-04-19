@@ -1,0 +1,67 @@
+from typing import List
+
+from app.db.models import User
+from app.schemas.user import (
+    SignUpRequest,
+    UserUpdateRequest,
+    UserDeletedResponse,
+)
+from app.db.repositories.user_repo import UserRepository
+from app.services.user import exc
+from app.utils.hashing import Hasher
+
+
+class UserService:
+    def __init__(self, repo: UserRepository) -> None:
+        self._repo = repo
+
+    async def get_user_list(self, skip: int = 0, limit: int = 100) -> List[User]:
+        users = await self._repo.get_list(skip, limit)
+        return users
+
+    async def get_user(self, id: int) -> User:
+        user: User | None = await self._repo.get(id=id)
+
+        if user is None:
+            raise exc.UserNotFound(identifier=id)
+
+        return user
+
+    async def create_user(self, data: SignUpRequest) -> User:
+        data_dict = data.model_dump()
+
+        hashed_password = Hasher.get_password_hash(data_dict["password"])
+        data_dict["hashed_password"] = hashed_password
+        del data_dict["password"]
+
+        user = await self._repo.create(data=data_dict)
+
+        if user is None:
+            raise exc.UserAlreadyExists(identifier=data.email)
+
+        return user
+
+    async def update_user(self, id: int, data: UserUpdateRequest) -> User:
+        data_dict = data.model_dump()
+        if not data.name:
+            del data_dict["name"]
+        if data.password:
+            hashed_password = Hasher.get_password_hash(data.password)
+            data_dict["hashed_password"] = hashed_password
+
+        del data_dict["password"]
+
+        user = await self._repo.update(id=id, data=data_dict)
+
+        if user is None:
+            raise exc.UserNotFound(identifier=id)
+
+        return user
+
+    async def delete_user(self, id: int) -> UserDeletedResponse:
+        deleted = await self._repo.delete(id=id)
+
+        if deleted is False:
+            raise exc.UserNotFound(identifier=id)
+
+        return UserDeletedResponse()

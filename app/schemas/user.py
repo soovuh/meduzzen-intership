@@ -23,8 +23,8 @@ class SignUpRequest(BaseModel):
 
 
 class UserUpdateRequest(BaseModel):
-    name: Optional[str]
-    password: Optional[str]
+    name: Optional[str] = None
+    password: Optional[str] = None
 
 
 class UserSummary(BaseModel):
@@ -32,5 +32,5 @@ class UserSummary(BaseModel):
     name: str
 
 
-class UsersListResponse(BaseModel):
-    users: List[UserSummary]
+class UserDeletedResponse(BaseModel):
+    result: str = "user has been successfully deleted"
