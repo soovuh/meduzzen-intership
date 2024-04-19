@@ -41,11 +41,12 @@ class SQLAlchemyRepository(Generic[Model]):
             await self._db.refresh(instance)
             return instance
         return None
-    
+
     async def delete(self, id: int) -> bool:
         instance = await self.get(id)
         if instance:
-            self._db.execute(delete(self.model).filter_by(id=id))
+            await self._db.delete(instance)
+            await self._db.commit()
             return True
-        
+
         return False

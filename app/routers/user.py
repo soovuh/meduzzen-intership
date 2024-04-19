@@ -10,6 +10,7 @@ from app.schemas.user import (
     UserDetail,
     SignUpRequest,
     UserUpdateRequest,
+    UserDeletedResponse,
 )
 
 
@@ -23,17 +24,20 @@ async def get_user_service(db: AsyncSession = Depends(get_session)) -> UserServi
 
 @router.get("/", response_model=UsersListResponse)
 async def read_users(
-    user_service: UserService = Depends(get_user_service), skip: int = 0, limit: int = 100
+    user_service: UserService = Depends(get_user_service),
+    skip: int = 0,
+    limit: int = 100,
 ):
     """Get all users"""
     return await user_service.get_user_list(skip, limit)
 
 
 @router.get("/{user_id}", response_model=UserDetail)
-async def read_user(user_id: int, user_service: UserService = Depends(get_user_service)):
+async def read_user(
+    user_id: int, user_service: UserService = Depends(get_user_service)
+):
     """Get a user by ID."""
     return await user_service.get_user(id=user_id)
-
 
 
 @router.post("/", response_model=UserDetail)
@@ -46,13 +50,17 @@ async def create_new_user(
 
 @router.put("/{user_id}", response_model=UserDetail)
 async def update_existing_user(
-    user_id: int, user_data: UserUpdateRequest, user_service: UserService = Depends(get_user_service)
+    user_id: int,
+    user_data: UserUpdateRequest,
+    user_service: UserService = Depends(get_user_service),
 ):
     """Update an existing user."""
     return await user_service.update_user(id=user_id, data=user_data)
 
 
-@router.delete("/{user_id}", response_model=dict)
-async def delete_existing_user(user_id: int, user_service: UserService = Depends(get_user_service)):
+@router.delete("/{user_id}", response_model=UserDeletedResponse)
+async def delete_existing_user(
+    user_id: int, user_service: UserService = Depends(get_user_service)
+):
     """Delete an existing user."""
     return await user_service.delete_user(id=user_id)
