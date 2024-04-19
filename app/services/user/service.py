@@ -57,10 +57,13 @@ class UserService:
 
     async def update_user(self, id: int, data: UserUpdateRequest) -> UserDetail:
         data_dict = data.model_dump()
+        if not data.name:
+            del data_dict["name"]
         if data.password:
             hashed_password = Hasher.get_password_hash(data.password)
             data_dict["hashed_password"] = hashed_password
-            del data_dict["password"]
+
+        del data_dict["password"]
 
         user = await self._repo.update(id=id, data=data_dict)
 
