@@ -1,5 +1,5 @@
 from sqlalchemy import select, delete
-from typing import Generic, TypeVar, Type
+from typing import Generic, TypeVar, Type, Optional, List
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db import models
@@ -16,7 +16,7 @@ class SQLAlchemyRepository(Generic[Model]):
         self.model = model
         self._db = db
 
-    async def create(self, data: dict) -> Model:
+    async def create(self, data: dict) -> Optional[Model]:
         try:
             instance = self.model(**data)
             self._db.add(instance)
@@ -29,14 +29,14 @@ class SQLAlchemyRepository(Generic[Model]):
             logger.error(f"Failed to create {self.model.__name__}")
             return None
 
-    async def get(self, id: int) -> Model:
+    async def get(self, id: int) -> Optional[Model]:
         return await self._db.get(self.model, id)
 
-    async def get_list(self, skip: int = 0, limit: int = 100) -> list[Model]:
+    async def get_list(self, skip: int = 0, limit: int = 100) -> List[Model]:
         query = select(self.model).offset(skip).limit(limit)
-        return list(await self._db.scalars(query))
+        return await self._db.scalars(query)
 
-    async def update(self, id: int, data: dict) -> Model:
+    async def update(self, id: int, data: dict) -> Optional[Model]:
         instance = await self.get(id)
         if instance:
             for key, value in data.items():

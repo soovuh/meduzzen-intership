@@ -32,9 +32,5 @@ class UserSummary(BaseModel):
     name: str
 
 
-class UsersListResponse(BaseModel):
-    users: List[UserSummary]
-
-
 class UserDeletedResponse(BaseModel):
     result: str = "user has been successfully deleted"

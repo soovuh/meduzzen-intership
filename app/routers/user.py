@@ -1,16 +1,17 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
 
 from app.db.database import get_session
 from app.db import models
 from app.services.user.service import UserService
 from app.db.repositories.user_repo import UserRepository
 from app.schemas.user import (
-    UsersListResponse,
     UserDetail,
     SignUpRequest,
     UserUpdateRequest,
     UserDeletedResponse,
+    UserSummary,
 )
 
 
@@ -22,7 +23,7 @@ async def get_user_service(db: AsyncSession = Depends(get_session)) -> UserServi
     return UserService(repo=user_repository)
 
 
-@router.get("/", response_model=UsersListResponse)
+@router.get("/", response_model=List[UserSummary])
 async def read_users(
     user_service: UserService = Depends(get_user_service),
     skip: int = 0,

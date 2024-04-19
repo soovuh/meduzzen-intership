@@ -1,10 +1,9 @@
+from typing import List
+
 from app.db.models import User
 from app.schemas.user import (
-    UsersListResponse,
-    UserDetail,
     SignUpRequest,
     UserUpdateRequest,
-    UserSummary,
     UserDeletedResponse,
 )
 from app.db.repositories.user_repo import UserRepository
@@ -16,26 +15,19 @@ class UserService:
     def __init__(self, repo: UserRepository) -> None:
         self._repo = repo
 
-    async def get_user_list(self, skip: int = 0, limit: int = 100) -> UsersListResponse:
+    async def get_user_list(self, skip: int = 0, limit: int = 100) -> List[User]:
         users = await self._repo.get_list(skip, limit)
-        user_summaries = [UserSummary(id=user.id, name=user.name) for user in users]
-        return UsersListResponse(users=user_summaries)
+        return users
 
-    async def get_user(self, id: int) -> UserDetail:
+    async def get_user(self, id: int) -> User:
         user: User | None = await self._repo.get(id=id)
 
         if user is None:
             raise exc.UserNotFound(identifier=id)
 
-        return UserDetail(
-            id=user.id,
-            name=user.name,
-            email=user.email,
-            is_active=user.is_active,
-            created_at=user.created_at,
-        )
+        return user
 
-    async def create_user(self, data: SignUpRequest) -> UserDetail:
+    async def create_user(self, data: SignUpRequest) -> User:
         data_dict = data.model_dump()
 
         hashed_password = Hasher.get_password_hash(data_dict["password"])
@@ -47,15 +39,9 @@ class UserService:
         if user is None:
             raise exc.UserAlreadyExists(identifier=data.email)
 
-        return UserDetail(
-            id=user.id,
-            name=user.name,
-            email=user.email,
-            is_active=user.is_active,
-            created_at=user.created_at,
-        )
+        return user
 
-    async def update_user(self, id: int, data: UserUpdateRequest) -> UserDetail:
+    async def update_user(self, id: int, data: UserUpdateRequest) -> User:
         data_dict = data.model_dump()
         if not data.name:
             del data_dict["name"]
@@ -70,15 +56,9 @@ class UserService:
         if user is None:
             raise exc.UserNotFound(identifier=id)
 
-        return UserDetail(
-            id=user.id,
-            name=user.name,
-            email=user.email,
-            is_active=user.is_active,
-            created_at=user.created_at,
-        )
+        return user
 
-    async def delete_user(self, id: int) -> None:
+    async def delete_user(self, id: int) -> UserDeletedResponse:
         deleted = await self._repo.delete(id=id)
 
         if deleted is False:
