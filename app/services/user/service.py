@@ -16,7 +16,7 @@ from app.schemas.user import (
     UserDeletedResponse,
     SignInRequest,
 )
-from app.utils.token import (
+from app.utils.jwt_classic import (
     create_access_token,
     create_refresh_token,
     JWT_SECRET_KEY,
