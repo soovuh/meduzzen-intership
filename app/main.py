@@ -16,7 +16,13 @@ from app.db.database import (
     get_session_imp,
 )
 from app.db.redis import get_redis, get_redis_imp
-from app.services.shared.base_exceptions import ObjectNotFound, AlreadyExists
+from app.services.shared.base_exceptions import (
+    ObjectNotFound,
+    AlreadyExists,
+    Expiried,
+    CredentialsError,
+    IncorrectData,
+)
 
 
 app = FastAPI()
@@ -40,6 +46,9 @@ app.include_router(router, prefix="")
 
 app.add_exception_handler(ObjectNotFound, handlers.handle_object_not_found)
 app.add_exception_handler(AlreadyExists, handlers.handle_object_already_exists)
+app.add_exception_handler(Expiried, handlers.expired)
+app.add_exception_handler(CredentialsError, handlers.credentials_error)
+app.add_exception_handler(IncorrectData, handlers.incorrect_data)
 
 
 def register_db(app: FastAPI) -> None:

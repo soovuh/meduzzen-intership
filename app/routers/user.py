@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
@@ -6,9 +6,11 @@ from app.db.database import get_session
 from app.db import models
 from app.services.user.service import UserService
 from app.db.repositories.user_repo import UserRepository
+from app.schemas.token import TokenSchema
 from app.schemas.user import (
     UserDetail,
     SignUpRequest,
+    SignInRequest,
     UserUpdateRequest,
     UserDeletedResponse,
     UserSummary,
@@ -33,6 +35,14 @@ async def read_users(
     return await user_service.get_user_list(skip, limit)
 
 
+@router.get("/me", response_model=UserDetail)
+async def read_current_user(
+    token: str, user_service: UserService = Depends(get_user_service)
+):
+    """Get a user by token"""
+    return await user_service.get_current_user(token=token)
+
+
 @router.get("/{user_id}", response_model=UserDetail)
 async def read_user(
     user_id: int, user_service: UserService = Depends(get_user_service)
@@ -47,6 +57,14 @@ async def create_new_user(
 ):
     """Create a new user (Sign Up)."""
     return await user_service.create_user(data=user_data)
+
+
+@router.post("/signin", response_model=TokenSchema)
+async def signin(
+    data: SignInRequest, user_service: UserService = Depends(get_user_service)
+):
+    """User sign in"""
+    return await user_service.signin_user(data=data)
 
 
 @router.put("/{user_id}", response_model=UserDetail)

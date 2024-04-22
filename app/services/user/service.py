@@ -1,14 +1,27 @@
 from typing import List
+from jose import jwt
+from jose.exceptions import JWTError
+from datetime import datetime
+from pydantic import ValidationError
 
 from app.db.models import User
+from app.schemas.token import TokenSchema, TokenPayload
+from app.db.repositories.user_repo import UserRepository
+from app.services.user import exc
+from app.utils.hashing import Hasher
+from app.services.shared import base_exceptions
 from app.schemas.user import (
     SignUpRequest,
     UserUpdateRequest,
     UserDeletedResponse,
+    SignInRequest,
 )
-from app.db.repositories.user_repo import UserRepository
-from app.services.user import exc
-from app.utils.hashing import Hasher
+from app.utils.token import (
+    create_access_token,
+    create_refresh_token,
+    JWT_SECRET_KEY,
+    ALGORITHM,
+)
 
 
 class UserService:
@@ -27,6 +40,24 @@ class UserService:
 
         return user
 
+    async def get_current_user(self, token: str) -> User:
+        try:
+            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+            token_data = TokenPayload(**payload)
+
+            if datetime.fromtimestamp(token_data.exp) < datetime.now():
+                raise exc.UserTokenExpiried()
+
+        except (JWTError, ValidationError):
+            raise base_exceptions.CredentialsError()
+
+        user: User | None = await self._repo.get_user_by_email(token_data.sub)
+
+        if user is None:
+            raise exc.UserNotFound(identifier=token_data.sub)
+
+        return user
+
     async def create_user(self, data: SignUpRequest) -> User:
         data_dict = data.model_dump()
 
@@ -40,6 +71,22 @@ class UserService:
             raise exc.UserAlreadyExists(identifier=data.email)
 
         return user
+
+    async def signin_user(self, data: SignInRequest) -> TokenSchema:
+        user = await self._repo.get_user_by_email(email=data.email)
+
+        if user is None:
+            raise exc.UserNotFound(identifier=data.email)
+
+        hashed_password = user.hashed_password
+
+        if not Hasher.verify_password(data.password, hashed_password):
+            raise exc.IncorrecUserData(field_name="password", identifier=data.email)
+
+        return {
+            "access_token": create_access_token(user.email),
+            "refresh_token": create_refresh_token(user.email),
+        }
 
     async def update_user(self, id: int, data: UserUpdateRequest) -> User:
         data_dict = data.model_dump()
