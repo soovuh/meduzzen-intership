@@ -1,7 +1,15 @@
 import os
+from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from datetime import datetime, timedelta
-from typing import Union, Any
+from typing import Union, Any, Optional
 from jose import jwt
+from jose.exceptions import JWTError
+from datetime import datetime
+from pydantic import ValidationError
+
+from app.schemas.token import TokenPayload
+from app.services.user import exc
 
 
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -9,6 +17,27 @@ REFRESH_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7
 ALGORITHM = os.environ["JWT_ALGORHITM"]
 JWT_SECRET_KEY = os.environ["JWT_SECRET_KEY"]
 JWT_REFRESH_SECRET_KEY = os.environ["JWT_REFRESH_SECRET_KEY"]
+
+
+class VerifyToken:
+    async def verify(
+        self,
+        token: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer()),
+    ):
+        if token is None:
+            return None
+        try:
+            payload = jwt.decode(
+                token.credentials, JWT_SECRET_KEY, algorithms=[ALGORITHM]
+            )
+            token_data = TokenPayload(**payload)
+
+            if datetime.fromtimestamp(token_data.exp) < datetime.now():
+                raise exc.UserTokenExpiried()
+
+        except (JWTError, ValidationError):
+            return None
+        return TokenPayload(**payload)
 
 
 def create_access_token(subject: Union[str, Any], expires_delta: int = None) -> str:

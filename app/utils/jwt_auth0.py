@@ -19,7 +19,7 @@ class UnauthenticatedException(HTTPException):
         )
 
 
-class VerifyToken:
+class VerifyAuth0Token:
     """Does all the token verification using PyJWT"""
 
     def __init__(self):
@@ -34,15 +34,15 @@ class VerifyToken:
         token: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer()),
     ):
         if token is None:
-            raise UnauthenticatedException
+            return None
         try:
             signing_key = self.jwks_client.get_signing_key_from_jwt(
                 token.credentials
             ).key
         except jwt.exceptions.PyJWKClientError as error:
-            raise UnauthorizedException(str(error))
+            return None
         except jwt.exceptions.DecodeError as error:
-            raise UnauthorizedException(str(error))
+            return None
         try:
             payload = jwt.decode(
                 token.credentials,

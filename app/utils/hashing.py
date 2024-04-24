@@ -1,4 +1,4 @@
-import random
+import secrets
 import string
 from passlib.context import CryptContext
 
@@ -16,20 +16,5 @@ class Hasher:
 
     @staticmethod
     def generate_random_password(length=12):
-        """Generate a random password."""
-
-        num_letters = random.randint(2, 4)
-        num_digits = random.randint(2, 4)
-        num_symbols = length - num_letters - num_digits
-
-        password_list = (
-            [random.choice(string.ascii_letters) for _ in range(num_letters)]
-            + [random.choice(string.digits) for _ in range(num_digits)]
-            + [random.choice(string.punctuation) for _ in range(num_symbols)]
-        )
-
-        random.shuffle(password_list)
-
-        random_password = "".join(password_list)
-
-        return random_password
+        alphabet = string.ascii_letters + string.digits + string.punctuation
+        return "".join(secrets.choice(alphabet) for _ in range(length))

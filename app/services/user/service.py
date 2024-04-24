@@ -1,8 +1,4 @@
-from typing import List
-from jose import jwt
-from jose.exceptions import JWTError
-from datetime import datetime
-from pydantic import ValidationError
+from typing import List, AnyStr, Dict, Optional
 
 from app.db.models import User
 from app.schemas.token import TokenSchema, TokenPayload
@@ -19,8 +15,6 @@ from app.schemas.user import (
 from app.utils.jwt_classic import (
     create_access_token,
     create_refresh_token,
-    JWT_SECRET_KEY,
-    ALGORITHM,
 )
 
 
@@ -40,23 +34,31 @@ class UserService:
 
         return user
 
-    async def get_current_user(self, token: str) -> User:
-        try:
-            payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
-            token_data = TokenPayload(**payload)
+    async def get_current_user(
+        self, token: Optional[TokenPayload], auth0_token: Optional[Dict]
+    ) -> User:
+        if auth0_token:
+            user = await self._repo.get_user_by_email(email=auth0_token["user_email"])
 
-            if datetime.fromtimestamp(token_data.exp) < datetime.now():
-                raise exc.UserTokenExpiried()
+            if user is None:
+                random_password = Hasher.generate_random_password()
+                hashed_password = Hasher.get_password_hash(random_password)
+                user = await self._repo.create(
+                    {
+                        "name": auth0_token["user_name"],
+                        "email": auth0_token["user_email"],
+                        "hashed_password": hashed_password,
+                    }
+                )
+            return user
+        elif token:
+            user: User | None = await self._repo.get_user_by_email(token.sub)
 
-        except (JWTError, ValidationError):
-            raise base_exceptions.CredentialsError()
+            if user is None:
+                raise exc.UserNotFound(identifier=token.sub)
 
-        user: User | None = await self._repo.get_user_by_email(token_data.sub)
-
-        if user is None:
-            raise exc.UserNotFound(identifier=token_data.sub)
-
-        return user
+            return user
+        raise base_exceptions.CredentialsError()
 
     async def create_user(self, data: SignUpRequest) -> User:
         data_dict = data.model_dump()
@@ -82,25 +84,6 @@ class UserService:
 
         if not Hasher.verify_password(data.password, hashed_password):
             raise exc.IncorrecUserData(field_name="password", identifier=data.email)
-
-        return {
-            "access_token": create_access_token(user.email),
-            "refresh_token": create_refresh_token(user.email),
-        }
-
-    async def signin_auth0_user(self, data: dict) -> TokenSchema:
-        user = await self._repo.get_user_by_email(email=data["user_email"])
-
-        if user is None:
-            random_password = Hasher.generate_random_password()
-            hashed_password = Hasher.get_password_hash(random_password)
-            user = await self._repo.create(
-                {
-                    "name": data["user_name"],
-                    "email": data["user_email"],
-                    "hashed_password": hashed_password,
-                }
-            )
 
         return {
             "access_token": create_access_token(user.email),

@@ -1,13 +1,14 @@
 from fastapi import APIRouter, Depends, Security
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
+from typing import List, Optional, AnyStr, Dict
 
 from app.db.database import get_session
 from app.db import models
 from app.services.user.service import UserService
 from app.db.repositories.user_repo import UserRepository
-from app.schemas.token import TokenSchema
-from app.utils.jwt_auth0 import VerifyToken
+from app.schemas.token import TokenSchema, TokenPayload
+from app.utils.jwt_auth0 import VerifyAuth0Token
+from app.utils.jwt_classic import VerifyToken
 from app.schemas.user import (
     UserDetail,
     SignUpRequest,
@@ -19,7 +20,8 @@ from app.schemas.user import (
 
 
 router = APIRouter(prefix="/users")
-auth0 = VerifyToken()
+auth0 = VerifyAuth0Token()
+auth_classic = VerifyToken()
 
 
 async def get_user_service(db: AsyncSession = Depends(get_session)) -> UserService:
@@ -39,10 +41,12 @@ async def read_users(
 
 @router.get("/me", response_model=UserDetail)
 async def read_current_user(
-    token: str, user_service: UserService = Depends(get_user_service)
+    token: Optional[TokenPayload] = Depends(auth_classic.verify),
+    user_service: UserService = Depends(get_user_service),
+    auth0_token: Optional[Dict] = Security(auth0.verify),
 ):
     """Get a user by token"""
-    return await user_service.get_current_user(token=token)
+    return await user_service.get_current_user(token=token, auth0_token=auth0_token)
 
 
 @router.get("/{user_id}", response_model=UserDetail)
@@ -67,14 +71,6 @@ async def signin(
 ):
     """User sign in"""
     return await user_service.signin_user(data=data)
-
-
-@router.post("/auth0")
-async def auth0_signin(
-    auth_result: str = Security(auth0.verify),
-    user_service: UserService = Depends(get_user_service),
-):
-    return await user_service.signin_auth0_user(auth_result)
 
 
 @router.put("/{user_id}", response_model=UserDetail)
