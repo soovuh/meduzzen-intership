@@ -88,6 +88,25 @@ class UserService:
             "refresh_token": create_refresh_token(user.email),
         }
 
+    async def signin_auth0_user(self, data: dict) -> TokenSchema:
+        user = await self._repo.get_user_by_email(email=data["user_email"])
+
+        if user is None:
+            random_password = Hasher.generate_random_password()
+            hashed_password = Hasher.get_password_hash(random_password)
+            user = await self._repo.create(
+                {
+                    "name": data["user_name"],
+                    "email": data["user_email"],
+                    "hashed_password": hashed_password,
+                }
+            )
+
+        return {
+            "access_token": create_access_token(user.email),
+            "refresh_token": create_refresh_token(user.email),
+        }
+
     async def update_user(self, id: int, data: UserUpdateRequest) -> User:
         data_dict = data.model_dump()
         if not data.name:

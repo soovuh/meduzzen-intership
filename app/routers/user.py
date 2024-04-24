@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends,  Security
+from fastapi import APIRouter, Depends, Security
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 
@@ -19,7 +19,8 @@ from app.schemas.user import (
 
 
 router = APIRouter(prefix="/users")
-auth = VerifyToken()
+auth0 = VerifyToken()
+
 
 async def get_user_service(db: AsyncSession = Depends(get_session)) -> UserService:
     user_repository = UserRepository(models.User, db)
@@ -69,8 +70,11 @@ async def signin(
 
 
 @router.post("/auth0")
-async def auth0_signin(auth_result: str = Security(auth.verify)):
-    return auth_result
+async def auth0_signin(
+    auth_result: str = Security(auth0.verify),
+    user_service: UserService = Depends(get_user_service),
+):
+    return await user_service.signin_auth0_user(auth_result)
 
 
 @router.put("/{user_id}", response_model=UserDetail)
