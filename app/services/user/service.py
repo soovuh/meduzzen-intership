@@ -1,14 +1,21 @@
-from typing import List
+from typing import List, AnyStr, Dict, Optional
 
 from app.db.models import User
+from app.schemas.token import TokenSchema, TokenPayload
+from app.db.repositories.user_repo import UserRepository
+from app.services.user import exc
+from app.utils.hashing import Hasher
+from app.services.shared import base_exceptions
 from app.schemas.user import (
     SignUpRequest,
     UserUpdateRequest,
     UserDeletedResponse,
+    SignInRequest,
 )
-from app.db.repositories.user_repo import UserRepository
-from app.services.user import exc
-from app.utils.hashing import Hasher
+from app.utils.jwt_classic import (
+    create_access_token,
+    create_refresh_token,
+)
 
 
 class UserService:
@@ -27,6 +34,32 @@ class UserService:
 
         return user
 
+    async def get_current_user(
+        self, token: Optional[TokenPayload], auth0_token: Optional[Dict]
+    ) -> User:
+        if auth0_token:
+            user = await self._repo.get_user_by_email(email=auth0_token["user_email"])
+
+            if user is None:
+                random_password = Hasher.generate_random_password()
+                hashed_password = Hasher.get_password_hash(random_password)
+                user = await self._repo.create(
+                    {
+                        "name": auth0_token["user_name"],
+                        "email": auth0_token["user_email"],
+                        "hashed_password": hashed_password,
+                    }
+                )
+            return user
+        elif token:
+            user: User | None = await self._repo.get_user_by_email(token.sub)
+
+            if user is None:
+                raise exc.UserNotFound(identifier=token.sub)
+
+            return user
+        raise base_exceptions.CredentialsError()
+
     async def create_user(self, data: SignUpRequest) -> User:
         data_dict = data.model_dump()
 
@@ -40,6 +73,22 @@ class UserService:
             raise exc.UserAlreadyExists(identifier=data.email)
 
         return user
+
+    async def signin_user(self, data: SignInRequest) -> TokenSchema:
+        user = await self._repo.get_user_by_email(email=data.email)
+
+        if user is None:
+            raise exc.UserNotFound(identifier=data.email)
+
+        hashed_password = user.hashed_password
+
+        if not Hasher.verify_password(data.password, hashed_password):
+            raise exc.IncorrecUserData(field_name="password", identifier=data.email)
+
+        return {
+            "access_token": create_access_token(user.email),
+            "refresh_token": create_refresh_token(user.email),
+        }
 
     async def update_user(self, id: int, data: UserUpdateRequest) -> User:
         data_dict = data.model_dump()
