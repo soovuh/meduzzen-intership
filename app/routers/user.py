@@ -78,14 +78,19 @@ async def update_existing_user(
     user_id: int,
     user_data: UserUpdateRequest,
     user_service: UserService = Depends(get_user_service),
+    auth0_token: Optional[Dict] = Security(auth0.verify),
+    token: Optional[TokenPayload] = Depends(auth_classic.verify),
 ):
     """Update an existing user."""
-    return await user_service.update_user(id=user_id, data=user_data)
+    return await user_service.update_user(user_id, user_data, auth0_token, token)
 
 
 @router.delete("/{user_id}", response_model=UserDeletedResponse)
 async def delete_existing_user(
-    user_id: int, user_service: UserService = Depends(get_user_service)
+    user_id: int,
+    user_service: UserService = Depends(get_user_service),
+    auth0_token: Optional[Dict] = Security(auth0.verify),
+    token: Optional[TokenPayload] = Depends(auth_classic.verify),
 ):
     """Delete an existing user."""
-    return await user_service.delete_user(id=user_id)
+    return await user_service.delete_user(user_id, auth0_token, token)
