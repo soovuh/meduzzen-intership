@@ -90,7 +90,18 @@ class UserService:
             "refresh_token": create_refresh_token(user.email),
         }
 
-    async def update_user(self, id: int, data: UserUpdateRequest) -> User:
+    async def update_user(
+        self,
+        id: int,
+        data: UserUpdateRequest,
+        auth0_token: Optional[Dict],
+        token: Optional[TokenPayload],
+    ) -> User:
+        current_user = await self.get_current_user(token, auth0_token)
+
+        if not current_user.id == id:
+            raise base_exceptions.CredentialsError()
+
         data_dict = data.model_dump()
         if not data.name:
             del data_dict["name"]
@@ -107,7 +118,14 @@ class UserService:
 
         return user
 
-    async def delete_user(self, id: int) -> UserDeletedResponse:
+    async def delete_user(
+        self, id: int, auth0_token: Optional[Dict], token: Optional[TokenPayload]
+    ) -> UserDeletedResponse:
+        current_user = await self.get_current_user(token, auth0_token)
+
+        if not current_user.id == id:
+            raise base_exceptions.CredentialsError()
+
         deleted = await self._repo.delete(id=id)
 
         if deleted is False:
