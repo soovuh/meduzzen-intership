@@ -94,10 +94,8 @@ class UserService:
         self,
         id: int,
         data: UserUpdateRequest,
-        auth0_token: Optional[Dict],
-        token: Optional[TokenPayload],
+        current_user: User,
     ) -> User:
-        current_user = await self.get_current_user(token, auth0_token)
 
         if not current_user.id == id:
             raise base_exceptions.CredentialsError()
@@ -119,9 +117,8 @@ class UserService:
         return user
 
     async def delete_user(
-        self, id: int, auth0_token: Optional[Dict], token: Optional[TokenPayload]
+        self, id: int, current_user: User
     ) -> UserDeletedResponse:
-        current_user = await self.get_current_user(token, auth0_token)
 
         if not current_user.id == id:
             raise base_exceptions.CredentialsError()
