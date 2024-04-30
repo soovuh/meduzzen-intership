@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Security
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional, AnyStr, Dict
+from typing import List, Optional, Dict
 
 from app.db.database import get_session
 from app.db import models
@@ -96,7 +96,7 @@ async def update_existing_user(
 async def delete_existing_user(
     user_id: int,
     user_service: UserService = Depends(get_user_service),
-    current_user: models.User = Depends(get_active_user)
+    current_user: models.User = Depends(get_active_user),
 ):
     """Delete an existing user."""
     return await user_service.delete_user(user_id, current_user)

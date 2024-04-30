@@ -1,4 +1,4 @@
-from typing import List, AnyStr, Dict, Optional
+from typing import List, Dict, Optional
 
 from app.db.models import User
 from app.schemas.token import TokenSchema, TokenPayload
@@ -116,9 +116,7 @@ class UserService:
 
         return user
 
-    async def delete_user(
-        self, id: int, current_user: User
-    ) -> UserDeletedResponse:
+    async def delete_user(self, id: int, current_user: User) -> UserDeletedResponse:
 
         if not current_user.id == id:
             raise base_exceptions.CredentialsError()
