@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Security
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional, AnyStr, Dict
+from typing import List, Optional, Dict
 
 from app.db.database import get_session
 from app.db import models
@@ -27,6 +27,14 @@ auth_classic = VerifyToken()
 async def get_user_service(db: AsyncSession = Depends(get_session)) -> UserService:
     user_repository = UserRepository(models.User, db)
     return UserService(repo=user_repository)
+
+
+async def get_active_user(
+    user_service: UserService = Depends(get_user_service),
+    auth0_token: Optional[Dict] = Security(auth0.verify),
+    token: Optional[TokenPayload] = Depends(auth_classic.verify),
+):
+    return await user_service.get_current_user(token=token, auth0_token=auth0_token)
 
 
 @router.get("/", response_model=List[UserSummary])
@@ -78,19 +86,17 @@ async def update_existing_user(
     user_id: int,
     user_data: UserUpdateRequest,
     user_service: UserService = Depends(get_user_service),
-    auth0_token: Optional[Dict] = Security(auth0.verify),
-    token: Optional[TokenPayload] = Depends(auth_classic.verify),
+    current_user: models.User = Depends(get_active_user),
 ):
     """Update an existing user."""
-    return await user_service.update_user(user_id, user_data, auth0_token, token)
+    return await user_service.update_user(user_id, user_data, current_user)
 
 
 @router.delete("/{user_id}", response_model=UserDeletedResponse)
 async def delete_existing_user(
     user_id: int,
     user_service: UserService = Depends(get_user_service),
-    auth0_token: Optional[Dict] = Security(auth0.verify),
-    token: Optional[TokenPayload] = Depends(auth_classic.verify),
+    current_user: models.User = Depends(get_active_user),
 ):
     """Delete an existing user."""
-    return await user_service.delete_user(user_id, auth0_token, token)
+    return await user_service.delete_user(user_id, current_user)

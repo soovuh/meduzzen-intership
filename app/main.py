@@ -22,6 +22,7 @@ from app.services.shared.base_exceptions import (
     Expiried,
     CredentialsError,
     IncorrectData,
+    AccessError,
 )
 
 
@@ -49,6 +50,7 @@ app.add_exception_handler(AlreadyExists, handlers.handle_object_already_exists)
 app.add_exception_handler(Expiried, handlers.expired)
 app.add_exception_handler(CredentialsError, handlers.credentials_error)
 app.add_exception_handler(IncorrectData, handlers.incorrect_data)
+app.add_exception_handler(AccessError, handlers.access_error)
 
 
 def register_db(app: FastAPI) -> None:
