@@ -11,3 +11,8 @@ class CompanyNotFound(base_exceptions.ObjectNotFound):
 class CompanyCreateError(base_exceptions.CreateError):
     def __init__(self, model_name: str = "company") -> None:
         super().__init__(model_name)
+
+
+class CompanyAccessError(base_exceptions.AccessError):
+    def __init__(self, model_name: str = "company") -> None:
+        super().__init__(model_name)

@@ -26,3 +26,7 @@ def expired(_: Request, exc: base_exceptions.Expiried) -> JSONResponse:
 
 def credentials_error(_: Request, exc: base_exceptions.Expiried) -> JSONResponse:
     return JSONResponse(content={"message": str(exc)}, status_code=401)
+
+
+def access_error(_: Request, exc: base_exceptions.AccessError) -> JSONResponse:
+    return JSONResponse(content={"message": str(exc)}, status_code=403)

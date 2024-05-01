@@ -53,7 +53,7 @@ class CompanyService:
             raise exc.CompanyNotFound(identifier=id)
 
         if not user.id == company.owner_id:
-            raise base_exceptions.CredentialsError()
+            raise exc.CompanyAccessError()
 
         data_dict = data.model_dump()
 
@@ -75,7 +75,7 @@ class CompanyService:
             raise exc.CompanyNotFound(identifier=id)
 
         if not user.id == company.owner_id:
-            raise base_exceptions.CredentialsError()
+            raise exc.CompanyAccessError()
 
         company = await self._repo.update(id=id, data=data.model_dump())
 
@@ -88,7 +88,7 @@ class CompanyService:
             raise exc.CompanyNotFound(identifier=id)
 
         if not user.id == company.owner_id:
-            raise base_exceptions.CredentialsError()
+            raise exc.CompanyAccessError()
 
         deleted = await self._repo.delete(id)
 

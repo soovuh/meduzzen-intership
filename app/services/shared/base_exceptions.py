@@ -31,3 +31,8 @@ class CredentialsError(Exception):
 class CreateError(Exception):
     def __init__(self, model_name: str) -> None:
         super().__init__(f"Error while create {model_name}")
+
+
+class AccessError(Exception):
+    def __init__(self, model_name: str) -> None:
+        super().__init__(f"Do not have access to this {model_name} resources")
